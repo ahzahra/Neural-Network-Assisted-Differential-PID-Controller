@@ -1,1 +1,1 @@
-# Neural-Network-Assisted-Differential-PID-Controller
+# Neural Network Assisted Differential PID Controller
