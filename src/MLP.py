@@ -3,11 +3,14 @@ import numdifftools as nd
 from sklearn.metrics import mean_squared_error
 from scipy import optimize
 
-X = np.ones((100,3))
-y = np.ones((100,12))
+filename = "data.txt"
+data = np.loadtxt(filename, delimiter=' ')
+X = data[:,:5]
+y = data[:,5:]
+
 n_nodes = 4
 layers = 1
-epochs = 100
+epochs = 1
 
 eps = 1e-6
 # eps = 0
@@ -22,6 +25,7 @@ nP = outputs.shape[0]*outputs.shape[1]
 rho = 1
 rho = rho * np.eye(N)
 
+
 for ep in xrange(epochs):
     print "===================EPOCH %d===================" %(ep)
     orig_err = []
@@ -29,6 +33,7 @@ for ep in xrange(epochs):
     jacobian = np.zeros((nP,N))
     # calculate jacobian error values
     for j_ind in xrange(N+1):
+        print j_ind
         # increment a different theta for each iteration
         if j_ind != 0:
             j_thetas[j_ind-1] += eps
@@ -85,5 +90,4 @@ for ep in xrange(epochs):
     # compute jacobian matrix
     jacobian = (jacobian - orig_err) / eps
     ainv = np.linalg.inv(rho + np.dot(jacobian.T,jacobian))
-    A = np.dot(ainv, np.dot(jacobian.T,orig_err))
     thetas = thetas - (np.dot(ainv, np.dot(jacobian.T,orig_err))).reshape((thetas.shape[0],))
