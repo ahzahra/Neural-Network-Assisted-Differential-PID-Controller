@@ -112,7 +112,7 @@ class MLP:
             # compute jacobian matrix
             jacobian = (jacobian - orig_err) / eps
             ainv = np.linalg.inv(rho + np.dot(jacobian.T,jacobian))
-            thetas = thetas - (np.dot(ainv, np.dot(jacobian.T,orig_err))).reshape((thetas.shape[0],))
+            theta_delta = (np.dot(ainv, np.dot(jacobian.T,orig_err))).reshape((thetas.shape[0],))
 
             cost = mean_squared_error(y,orig_outputs)
 
@@ -123,7 +123,9 @@ class MLP:
             if abs(cost - cost_prev) < 1e-6:
                 break
             else:
+                thetas = thetas - theta_delta
                 cost_prev = cost
+
         self.thetas = thetas
 
     def predict(self, X):
@@ -135,26 +137,40 @@ if __name__ == "__main__":
     X_orig = data[:,:5]
     y_orig = data[:,5:]
 
+    filename = "test_data.txt"
+    test = np.loadtxt(filename, delimiter=' ')
+    X_test_orig = test[:,:5]
+    y_test_orig = test[:,5:]
+
     X_mean = np.mean(X_orig, axis=0)
     y_mean = np.mean(y_orig, axis=0)
     X_std = np.std(X_orig, axis=0)
     y_std = np.std(y_orig, axis=0)
-
     X = X_orig - X_mean
     X = X / X_std
     y = y_orig - y_mean
     y = y / y_std
 
-    use = 1100
-    X = X[:use,:]
-    y = y[:use,:]
+    X_test = X_test_orig - X_mean
+    X_test = X_test / X_std
+    y_test = y_test_orig - y_mean
+    y_test = y_test / y_std
 
-    mlp = MLP(n_nodes=10,layers=1,epochs=100)
+    # use = X.shape[0]
+    # X = X[:use,:]
+    # y = y[:use,:]
+    # X_test = X_test[:,:]
+    # y_test = y_test[:,:]
+
+    mlp = MLP(n_nodes=10,layers=1,epochs=300,disp=True)
     mlp.train(X,y)
-    y_pred = mlp.predict(X)
+    y_pred = mlp.predict(X_test)
+    y_pred_train = mlp.predict(X)
 
-    print mean_squared_error(y,y_pred)
+    print "\n"
+    print "test MSE =", mean_squared_error(y_test,y_pred)
+    print "train MSE =", mean_squared_error(y,y_pred_train)
 
-    for i in xrange(3):
-        print i,y_pred[i,:10]
-        print i,y[i,:10]
+    # y_pred = y_pred * y_std + y_mean
+    # print mean_squared_error(y_test_orig[:use,:],y_pred)
+
