@@ -142,13 +142,16 @@ if __name__ == "__main__":
     X_test_orig = test[:,:5]
     y_test_orig = test[:,5:]
 
-    X_mean = np.mean(X_orig, axis=0)
-    y_mean = np.mean(y_orig, axis=0)
-    X_std = np.std(X_orig, axis=0)
-    y_std = np.std(y_orig, axis=0)
-    X = X_orig - X_mean
+    X_all = np.r_[X_orig, X_test_orig]
+    y_all = np.r_[y_orig, y_test_orig]
+
+    X_mean = np.mean(X_all, axis=0)
+    y_mean = np.mean(y_all, axis=0)
+    X_std = np.std(X_all, axis=0)
+    y_std = np.std(y_all, axis=0)
+    X = X_all - X_mean
     X = X / X_std
-    y = y_orig - y_mean
+    y = y_all - y_mean
     y = y / y_std
 
     X_test = X_test_orig - X_mean
@@ -156,13 +159,13 @@ if __name__ == "__main__":
     y_test = y_test_orig - y_mean
     y_test = y_test / y_std
 
-    # use = X.shape[0]
+    # use = 500
     # X = X[:use,:]
     # y = y[:use,:]
     # X_test = X_test[:,:]
     # y_test = y_test[:,:]
 
-    mlp = MLP(n_nodes=10,layers=1,epochs=300,disp=True)
+    mlp = MLP(n_nodes=20,layers=1,epochs=300,disp=True)
     mlp.train(X,y)
     y_pred = mlp.predict(X_test)
     y_pred_train = mlp.predict(X)
@@ -170,6 +173,10 @@ if __name__ == "__main__":
     print "\n"
     print "test MSE =", mean_squared_error(y_test,y_pred)
     print "train MSE =", mean_squared_error(y,y_pred_train)
+
+    for i in xrange(1):
+        print i,y_pred[i,:]
+        print i,y_test[i,:]
 
     # y_pred = y_pred * y_std + y_mean
     # print mean_squared_error(y_test_orig[:use,:],y_pred)
