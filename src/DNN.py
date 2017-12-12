@@ -11,7 +11,7 @@ from sklearn.metrics import precision_recall_fscore_support as score
 
 X_FEATURE = 'x'  # Name of the input feature.
 N_CLASSES = 24
-N_LAYERS = 5
+N_LAYERS = 50
 
 def my_model(features, labels, mode, params):
   """DNN with three hidden layers, and dropout of 0.1 probability."""
@@ -32,7 +32,7 @@ def my_model(features, labels, mode, params):
 
   for units,rate in zip(layers,dropout_rates):
     net = tf.layers.dense(net, units=units, activation=activation_func)
-    net = tf.layers.dropout(net, rate=rate)
+    # net = tf.layers.dropout(net, rate=rate)
 
   # Compute logits (1 per class)
   logits = tf.layers.dense(net, N_CLASSES, activation=None)
@@ -86,28 +86,34 @@ def main(unused_argv):
   # load the features
   filename = 'data.txt'
   data = np.loadtxt(filename, delimiter=' ')
-  X = data[:,0:5]
-  Y1 = data[:,5:17]
-  Y2 = data[:,17:]
-  Y = data[:,5:]
+  filename = 'test_data.txt'
+  test_data = np.loadtxt(filename, delimiter=' ')
+
+  X_train = data[:,0:5]
+  Y_train = data[:,5:]
+  X_test = test_data[:,0:5]
+  Y_test = test_data[:,5:]
+
+  X = np.vstack((X_train,X_test))
+  Y = np.vstack((Y_train, Y_test))
 
   # Standardize the features 
   mu_X = X.mean(axis = 0)
   sigma_X = X.std(axis = 0)
-  X_standardized = (X - mu_X)/sigma_X
+  X_train_standardized = (X_train - mu_X)/sigma_X
+  X_test_standardized = (X_test - mu_X)/sigma_X
 
   # Standardize the labels
   mu_Y = Y.mean(axis = 0)
   sigma_Y = Y.std(axis = 0)
-  Y_standardized = (Y - mu_Y)/sigma_Y
+  Y_test_standardized = (Y_test - mu_Y)/sigma_Y
+  Y_train_standardized = (Y_train - mu_Y)/sigma_Y
 
   layers = 100*np.ones((N_LAYERS,1))
-  dropout_rate1 = 0.1*np.ones((5,1))
+  dropout_rate1 = 0.1*np.ones((N_LAYERS,1))
 
-  x_train, x_test, y_train, y_test = model_selection.train_test_split(
-      X_standardized, Y_standardized, test_size=0.2, random_state=42)
-
-  scores_relu = train_and_evaluate(layers, dropout_rate1, x_train, x_test, y_train, y_test, tf.nn.relu)
+  scores_relu = train_and_evaluate(layers, dropout_rate1, X_train_standardized, X_test_standardized, 
+    Y_train_standardized, Y_test_standardized, tf.nn.tanh)
 
   print(scores_relu)
 
